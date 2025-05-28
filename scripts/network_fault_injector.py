@@ -18,8 +18,10 @@ def update_yaml_file(service, pod_count):
             data = yaml.safe_load(file)
         
         # 更新值
-        data['spec']['selector']['app'] = service
-        data['spec']['count'] = pod_count
+        if service:
+            data['spec']['selector']['app'] = service
+        if pod_count:
+            data['spec']['count'] = pod_count
         
         # 写回YAML文件
         with open(yaml_file_path, 'w') as file:
@@ -93,17 +95,27 @@ def main():
     )
     
     # 添加互斥参数组
-    group = parser.add_mutually_exclusive_group(required=True)
-    
-    # 启动故障注入的参数
-    group.add_argument('--service', type=str, 
-                      help='Target application name')
-    parser.add_argument('--pod_count', type=int,
-                      help='Number of pods to inject fault')
+    group = parser.add_mutually_exclusive_group()
     
     # 停止故障注入的参数
-    group.add_argument('--stop', action='store_true',
-                      help='Stop the fault injection')
+    group.add_argument(
+        '--stop', 
+        action='store_true',
+        help='Stop the fault injection'
+    )
+    
+    # 启动故障注入的参数
+    group.add_argument(
+        '-s', '--service', 
+        type=str,
+        help='Target application name'
+    )
+    
+    parser.add_argument(
+        '-p', '--pod_count', 
+        type=int,
+        help='Number of pods to inject fault'
+    )
     
     # 解析命令行参数
     args = parser.parse_args()
@@ -117,15 +129,16 @@ def main():
         return 1
     
     # 否则执行故障注入
-    if not args.pod_count:
-        parser.error("--pod_count is required when --service is specified")
+    # 只有当提供了service或pod_count参数时才更新YAML文件
+    if args.service or args.pod_count:
+        if not update_yaml_file(args.service, args.pod_count):
+            print("Failed to update YAML file")
+            return 1
     
-    # 修改YAML文件
-    if update_yaml_file(args.service, args.pod_count):
-        # 应用YAML文件
-        if apply_yaml():
-            print("Fault injection task submitted successfully")
-            return 0
+    # 应用YAML文件
+    if apply_yaml():
+        print("Fault injection task submitted successfully")
+        return 0
     
     print("Fault injection task submission failed")
     return 1

@@ -30,8 +30,14 @@ uv sync
 ### 使用方法
 
 ```bash
-# 启动故障注入
+# 启动故障注入，更新配置并应用
 ./scripts/network_fault_injector.py --service <应用名称> --pod_count <数量>
+
+# 使用短参数
+./scripts/network_fault_injector.py -s <应用名称> -p <数量>
+
+# 直接应用现有配置，不更新参数
+./scripts/network_fault_injector.py
 
 # 停止故障注入
 ./scripts/network_fault_injector.py --stop
@@ -39,8 +45,8 @@ uv sync
 
 ### 参数说明
 
-- `--service`: 要注入故障的应用名称（启动故障注入时必需）
-- `--pod_count`: 故障注入的Pod数量（启动故障注入时必需）
+- `-s, --service`: 要注入故障的应用名称（可选，提供时会更新YAML文件）
+- `-p, --pod_count`: 故障注入的Pod数量（可选，提供时会更新YAML文件）
 - `--stop`: 停止故障注入（与--service参数互斥）
 
 ### 示例
@@ -49,12 +55,24 @@ uv sync
 # 示例1：对ts-order-service应用注入网络故障，影响3个Pod
 ./scripts/network_fault_injector.py --service ts-order-service --pod_count 3
 
+# 使用短参数形式
+./scripts/network_fault_injector.py -s ts-order-service -p 3
+
 # 输出示例
 YAML file updated successfully: /data/datadog/chaos/usage/network_drop.yaml
 YAML file applied successfully: disruption.chaos.datadoghq.com/network-drop configured
 Fault injection task submitted successfully
 
-# 示例2：停止故障注入
+# 示例2：仅更新应用名称，保留其他配置
+./scripts/network_fault_injector.py -s ts-payment-service
+
+# 示例3：仅更新Pod数量，保留其他配置
+./scripts/network_fault_injector.py -p 5
+
+# 示例4：直接应用现有配置，不更新任何参数
+./scripts/network_fault_injector.py
+
+# 示例5：停止故障注入
 ./scripts/network_fault_injector.py --stop
 
 # 输出示例
