@@ -30,22 +30,27 @@ uv sync
 
 ```bash
 # 使用方式1：直接执行脚本
-./scripts/network_fault_injector.py --app <应用名称> --count <数量>
+./scripts/network_fault_injector.py --service <应用名称> --pod_count <数量>
 
 # 使用方式2：通过python执行
-python scripts/network_fault_injector.py --app <应用名称> --count <数量>
+python scripts/network_fault_injector.py --service <应用名称> --pod_count <数量>
 ```
 
 ### 参数说明
 
-- `--app`: 要注入故障的应用名称（必需）
-- `--count`: 故障注入的Pod数量（必需）
+- `--service`: 要注入故障的应用名称（必需）
+- `--pod_count`: 故障注入的Pod数量（必需）
 
 ### 示例
 
 ```bash
 # 对ts-order-service应用注入网络故障，影响3个Pod
-./scripts/network_fault_injector.py --app ts-order-service --count 3
+./scripts/network_fault_injector.py --service ts-order-service --pod_count 3
+
+# 输出示例
+YAML file updated successfully: /data/datadog/chaos/usage/network_drop.yaml
+YAML file applied successfully: disruption.chaos.datadoghq.com/network-drop configured
+Fault injection task submitted successfully
 ```
 
 ### 依赖项

@@ -8,7 +8,7 @@ import sys
 import os
 
 
-def update_yaml_file(app, count):
+def update_yaml_file(service, pod_count):
     """修改YAML文件中的app和count值"""
     yaml_file_path = "/data/datadog/chaos/usage/network_drop.yaml"
     
@@ -18,18 +18,18 @@ def update_yaml_file(app, count):
             data = yaml.safe_load(file)
         
         # 更新值
-        data['spec']['selector']['app'] = app
-        data['spec']['count'] = count
+        data['spec']['selector']['app'] = service
+        data['spec']['count'] = pod_count
         
         # 写回YAML文件
         with open(yaml_file_path, 'w') as file:
             yaml.dump(data, file, default_flow_style=False, sort_keys=False)
         
-        print(f"成功更新YAML文件: {yaml_file_path}")
+        print(f"YAML file updated successfully: {yaml_file_path}")
         return True
     
     except Exception as e:
-        print(f"更新YAML文件时出错: {str(e)}")
+        print(f"Error updating YAML file: {str(e)}")
         return False
 
 
@@ -40,7 +40,7 @@ def apply_yaml():
     try:
         # 检查文件是否存在
         if not os.path.exists(yaml_file_path):
-            print(f"错误: 找不到YAML文件: {yaml_file_path}")
+            print(f"Error: YAML file not found: {yaml_file_path}")
             return False
         
         # 执行kubectl命令
@@ -48,35 +48,37 @@ def apply_yaml():
         result = subprocess.run(command, capture_output=True, text=True)
         
         if result.returncode == 0:
-            print(f"成功应用YAML文件: {result.stdout}")
+            print(f"YAML file applied successfully: {result.stdout}")
             return True
         else:
-            print(f"应用YAML文件失败: {result.stderr}")
+            print(f"Failed to apply YAML file: {result.stderr}")
             return False
     
     except Exception as e:
-        print(f"执行kubectl命令时出错: {str(e)}")
+        print(f"Error executing kubectl command: {str(e)}")
         return False
 
 
 def main():
     """主函数"""
     # 创建参数解析器
-    parser = argparse.ArgumentParser(description='修改网络故障注入YAML并应用')
-    parser.add_argument('--app', type=str, required=True, help='要注入故障的应用名称')
-    parser.add_argument('--count', type=int, required=True, help='故障注入的Pod数量')
+    parser = argparse.ArgumentParser(description='Network fault injection tool')
+    parser.add_argument('--service', type=str, required=True, 
+                        help='Target application name')
+    parser.add_argument('--pod_count', type=int, required=True, 
+                        help='Number of pods to inject fault')
     
     # 解析命令行参数
     args = parser.parse_args()
     
     # 修改YAML文件
-    if update_yaml_file(args.app, args.count):
+    if update_yaml_file(args.service, args.pod_count):
         # 应用YAML文件
         if apply_yaml():
-            print("故障注入任务成功提交")
+            print("Fault injection task submitted successfully")
             return 0
     
-    print("故障注入任务提交失败")
+    print("Fault injection task submission failed")
     return 1
 
 
